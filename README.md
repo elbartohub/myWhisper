@@ -4,6 +4,7 @@
 This project provides a local, space-saving(For MacOS), and customizable setup for OpenAI's Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
 
 ---
+![alt text](images/myWhisper01.jpg)
 
 ## Quick Start: Web App
 
@@ -56,7 +57,7 @@ Open your browser and go to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 - Progress bar for long-running jobs
 - Robust background processing (threaded, no Redis/Celery required)
 - Custom dictionary for translation overrides (`custom_dict.txt`)
-
+![alt text](images/myWhisper02.png)
 ---
 
 ## Advanced: Model Management
