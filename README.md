@@ -1,7 +1,7 @@
 
 # My Whisper Project
 
-This project provides a local, space-saving, and customizable setup for OpenAI's Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
+This project provides a local, space-saving(For MacOS), and customizable setup for OpenAI's Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
 
 ---
 
@@ -9,7 +9,7 @@ This project provides a local, space-saving, and customizable setup for OpenAI's
 
 ### 1. Install Python & Dependencies
 
-**Recommended:** Python 3.13 (for best compatibility)
+**Recommended:** Python 3.12
 
 Create a virtual environment and install dependencies:
 
