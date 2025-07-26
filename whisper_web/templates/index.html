@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper Transcription Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropArea = document.getElementById('drop-area');
+        var fileInput = document.getElementById('file');
+        var preview = document.getElementById('file-preview');
+        if (!dropArea || !fileInput) return;
+
+        function showPreview(file) {
+            if (!preview) return;
+            preview.innerHTML = '';
+            var nameDiv = document.createElement('div');
+            nameDiv.textContent = 'Selected: ' + file.name;
+            nameDiv.style.fontWeight = '500';
+            nameDiv.style.marginBottom = '8px';
+            preview.appendChild(nameDiv);
+            if (file.type.startsWith('audio/')) {
+                var audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = URL.createObjectURL(file);
+                preview.appendChild(audio);
+            } else if (file.type.startsWith('video/')) {
+                var video = document.createElement('video');
+                video.controls = true;
+                video.width = 320;
+                video.src = URL.createObjectURL(file);
+                preview.appendChild(video);
+            }
+        }
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        // Highlight on dragover
+        dropArea.addEventListener('dragover', function() {
+            dropArea.classList.add('dragover');
+        });
+        dropArea.addEventListener('dragleave', function() {
+            dropArea.classList.remove('dragover');
+        });
+        dropArea.addEventListener('drop', function(e) {
+            dropArea.classList.remove('dragover');
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                showPreview(files[0]);
+            }
+        });
+
+        // Clicking drop area triggers file input
+        dropArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // Show preview when file selected via input
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                showPreview(fileInput.files[0]);
+            }
+        });
+    });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Whisper Transcription</h1>
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group upload-area">
+                <label for="file">Audio/Video File</label>
+                <div id="drop-area" style="position:relative;">
+                    <input type="file" name="file" id="file" required style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+                    <p>Drag & drop your file here or click to select</p>
+                    <div id="file-preview" style="margin-top:18px;"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="output_dir">Output Directory (optional)</label>
+                <input type="text" name="output_dir" id="output_dir" placeholder="Leave blank for default">
+            </div>
+            <div class="form-group">
+                <label for="model">Model</label>
+                <select name="model" id="model">
+                    {% for m in models %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="format">Output Format</label>
+                <select name="format" id="format">
+                    {% for f in formats %}
+                    <option value="{{ f }}" {% if f == 'srt' %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" name="cpu"> Force CPU</label>
+                <label><input type="checkbox" name="translate_zh" checked> Translate to Traditional Chinese</label>
+            </div>
+            <button type="submit">Transcribe</button>
+        </form>
+        {% if running %}
+        <div class="result" style="color:#6366f1; background:#eef2ff;">
+            <strong>Transcription is running... Please wait.</strong>
+        </div>
+        {% endif %}
+        {% if result %}
+        <div class="result">
+            <strong>Transcription completed!</strong><br>
+            {{ result }}
+        </div>
+        {% endif %}
+        {% if error %}
+        <div class="result" style="color:#b91c1c; background:#fff0f0;">
+            <strong>Error:</strong><br>
+            {{ error }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

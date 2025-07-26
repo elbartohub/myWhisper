@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transcription Progress</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .progress-bar {
+            width: 100%;
+            background: #e0e7ff;
+            border-radius: 8px;
+            margin: 24px 0 18px 0;
+            height: 32px;
+            box-shadow: 0 2px 8px rgba(60,80,180,0.08);
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1 0%, #3b4cca 100%);
+            border-radius: 8px;
+            width: 0%;
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            line-height: 32px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Transcription Progress</h1>
+        <div id="stopwatch" style="font-size:1.2rem;color:#334155;margin-bottom:12px;">Elapsed: 00:00</div>
+        <div class="progress-bar"><div class="progress-bar-inner" id="chunking-bar">0%</div></div>
+        <div style="margin-bottom:4px;color:#475569;font-size:1rem;">Chunking</div>
+        <div class="progress-bar"><div class="progress-bar-inner" id="transcribe-bar">0%</div></div>
+        <div style="margin-bottom:4px;color:#475569;font-size:1rem;">Transcribing</div>
+        <div class="progress-bar"><div class="progress-bar-inner" id="translate-bar">0%</div></div>
+        <div style="margin-bottom:4px;color:#475569;font-size:1rem;">Translating</div>
+        <div class="progress-bar"><div class="progress-bar-inner" id="post-bar">0%</div></div>
+        <div style="margin-bottom:4px;color:#475569;font-size:1rem;">Post-processing</div>
+        <div id="progress-status" style="margin-bottom:18px;color:#475569;font-size:1.1rem;"></div>
+        <div id="output" class="result" style="display:none;"></div>
+        <div id="error" class="result" style="color:#b91c1c; background:#fff0f0; display:none;"></div>
+        <a href="/" style="display:none;" id="back-link">&larr; Back to Home</a>
+    </div>
+    <script>
+        let stopwatchInterval = null;
+        let startTime = null;
+        function updateStopwatch() {
+            if (!startTime) return;
+            const now = new Date();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const sec = String(elapsed % 60).padStart(2, '0');
+            document.getElementById('stopwatch').textContent = `Elapsed: ${min}:${sec}`;
+        }
+        function pollProgress() {
+            fetch('/task_status/{{ task_id }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Stopwatch logic
+                    if (data.start_time && !startTime) {
+                        startTime = new Date(data.start_time);
+                        stopwatchInterval = setInterval(updateStopwatch, 1000);
+                    }
+                    updateStopwatch();
+                    // Multi-stage progress bars
+                    document.getElementById('chunking-bar').style.width = (data.chunk_progress || 0) + '%';
+                    document.getElementById('chunking-bar').textContent = (data.chunk_progress || 0) + '%';
+                    document.getElementById('transcribe-bar').style.width = (data.transcribe_progress || 0) + '%';
+                    document.getElementById('transcribe-bar').textContent = (data.transcribe_progress || 0) + '%';
+                    document.getElementById('translate-bar').style.width = (data.translate_progress || 0) + '%';
+                    document.getElementById('translate-bar').textContent = (data.translate_progress || 0) + '%';
+                    document.getElementById('post-bar').style.width = (data.post_progress || 0) + '%';
+                    document.getElementById('post-bar').textContent = (data.post_progress || 0) + '%';
+                    // Always clear output and error areas before updating
+                    document.getElementById('output').style.display = 'none';
+                    document.getElementById('output').textContent = '';
+                    document.getElementById('error').style.display = 'none';
+                    document.getElementById('error').textContent = '';
+                    document.getElementById('back-link').style.display = 'none';
+                    if (data.state === 'PROGRESS') {
+                        document.getElementById('progress-status').textContent = 'Transcription is running...';
+                        setTimeout(pollProgress, 1500);
+                    } else if (data.state === 'SUCCESS') {
+                        document.getElementById('progress-status').textContent = 'Transcription completed!';
+                        document.getElementById('output').style.display = 'block';
+                        if (stopwatchInterval) clearInterval(stopwatchInterval);
+                        // Detect SRT format by checking for timestamps
+                        if (data.output && /\d{2}:\d{2}:\d{2},\d{3}/.test(data.output)) {
+                            document.getElementById('output').innerHTML = '<pre style="font-family:monospace;white-space:pre-wrap;">' + data.output.replace(/\n/g, '<br>') + '</pre>';
+                        } else {
+                            document.getElementById('output').textContent = data.output;
+                        }
+                        document.getElementById('back-link').style.display = 'inline-block';
+                        return;
+                    } else if (data.state === 'FAILURE') {
+                        document.getElementById('progress-status').textContent = 'Transcription failed.';
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('error').textContent = data.error;
+                        document.getElementById('back-link').style.display = 'inline-block';
+                        if (stopwatchInterval) clearInterval(stopwatchInterval);
+                        return;
+                    } else {
+                        document.getElementById('progress-status').textContent = 'Waiting for job...';
+                        setTimeout(pollProgress, 1500);
+                    }
+                });
+        }
+        pollProgress();
+    </script>
+</body>
+</html>

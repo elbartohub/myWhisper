@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Flask uploads and outputs
+whisper_web/outputs/
+whisper_web/uploads/
+whisper_web/_chunks_*/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model files
+models/
+whisper_web/models/
+*.pt
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Misc
+*.sqlite3

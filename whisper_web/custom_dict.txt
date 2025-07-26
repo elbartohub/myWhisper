@@ -1,0 +1,9 @@
+# custom_dict.txt
+# Format: source=target (one per line)
+# Lines starting with # are comments and ignored
+聊天GPT=ChatGPT
+變壓器=Transformer
+語音識別=Speech Recognition
+原文=Original
+測試=Test
+# Add more replacements below

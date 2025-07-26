@@ -1,0 +1,138 @@
+/* whisper_web/static/style.css */
+body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+    background: linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 540px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(60, 80, 180, 0.10);
+    padding: 32px 28px 24px 28px;
+}
+
+h1 {
+    text-align: center;
+    color: #3b4cca;
+    font-size: 2.1rem;
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.upload-area {
+    margin-bottom: 24px;
+}
+
+#drop-area {
+    border: 2px dashed #6366f1;
+    border-radius: 12px;
+    background: #f1f5f9;
+    padding: 48px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 8px;
+}
+#drop-area.dragover {
+    border-color: #3b4cca;
+    background: #e0e7ff;
+}
+#drop-area input[type="file"] {
+    width: 80%;
+    height: 60px;
+    opacity: 0;
+    position: absolute;
+    left: 10%;
+    top: 0;
+    cursor: pointer;
+}
+#drop-area p {
+    color: #6366f1;
+    font-size: 1.15rem;
+    margin-top: 12px;
+}
+
+label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 7px;
+    color: #374151;
+}
+
+input[type="file"] {
+    display: block;
+    margin-top: 6px;
+    font-size: 1rem;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 1rem;
+    background: #f1f5f9;
+    transition: border-color 0.2s;
+}
+input[type="text"]:focus, select:focus {
+    border-color: #3b4cca;
+    outline: none;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 18px;
+    margin-top: 7px;
+}
+.checkbox-group label {
+    font-weight: 400;
+    color: #475569;
+    margin-bottom: 0;
+}
+
+button {
+    width: 100%;
+    background: linear-gradient(90deg, #3b4cca 0%, #6366f1 100%);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(60, 80, 180, 0.08);
+    transition: background 0.2s;
+}
+button:hover {
+    background: linear-gradient(90deg, #6366f1 0%, #3b4cca 100%);
+}
+
+.result {
+    margin-top: 24px;
+    padding: 18px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    color: #334155;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    box-shadow: 0 2px 8px rgba(60, 80, 180, 0.05);
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 18px 8px 12px 8px;
+    }
+    h1 {
+        font-size: 1.3rem;
+    }
+}
