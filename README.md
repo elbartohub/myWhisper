@@ -57,6 +57,9 @@ Open your browser and go to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 - Progress bar for long-running jobs
 - Robust background processing (threaded, no Redis/Celery required)
 - Custom dictionary for translation overrides (`custom_dict.txt`)
+
+---
+![alt text](images/myWhisper03.jpg)
 ![alt text](images/myWhisper02.png)
 ---
 
