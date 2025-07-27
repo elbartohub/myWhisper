@@ -104,7 +104,7 @@ def task_status(task_id):
         return jsonify({'state': 'FAILURE', 'progress': 100, 'error': f'Internal error: {e}'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 
 # Install the required packages
 import whisper

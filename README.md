@@ -1,4 +1,3 @@
-
 # My Whisper Project
 
 This project provides a local, space-saving(For MacOS), and customizable setup for OpenAI's Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
@@ -46,7 +45,7 @@ Start the Flask web server:
 python3 whisper_web/app.py
 ```
 
-Open your browser and go to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
+Open your browser and go to: [http://127.0.0.1:5001](http://127.0.0.1:5001)
 
 ---
 
@@ -324,7 +323,7 @@ python3 whisper_web/app.py
 ```
 
 ### 5. Usage
-- Open http://127.0.0.1:5000 in your browser
+- Open http://127.0.0.1:5001 in your browser
 - Upload a file, select options, and submit
 - You will be redirected to a progress page with a live progress bar
 - When finished, view the output or error
