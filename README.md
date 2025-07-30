@@ -1,6 +1,6 @@
 # My Whisper Project
 
-This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
+This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and "Custom dictionaries".
 
 ---
 ![alt text](images/myWhisper01.jpg)
@@ -13,9 +13,14 @@ This project provides a local, space-saving(For MacOS/Windows11), and customizab
 
 Create a virtual environment and install dependencies:
 
-```bash
-python3 -m venv .venv
+```MacOS bash
+python3.12 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+```
+```Windows PowerShell
+python3.12 -m venv .venv
+.venv/Scripts/activate
 pip install -r requirements.txt
 ```
 
@@ -295,51 +300,3 @@ print(result["text"])
 - Choose Whisper model, output format, and translation to Traditional Chinese
 - Progress bar for long-running jobs
 - Robust background processing using Celery + Redis
-
-## Setup Instructions
-
-### 1. Install Python dependencies
-```
-pip install flask celery redis openai-whisper torch deep-translator werkzeug
-```
-
-### 2. Install and start Redis
-- On macOS (Homebrew):
-```
-brew install redis
-redis-server
-```
-- On Linux:
-```
-sudo apt-get install redis-server
-redis-server
-```
-
-### 3. Start Celery worker
-```
-celery -A whisper_web.celery_worker worker --loglevel=info
-```
-
-### 4. Start Flask web app
-```
-python3 whisper_web/app.py
-```
-
-### 5. Usage
-- Open http://127.0.0.1:5001 in your browser
-- Upload a file, select options, and submit
-- You will be redirected to a progress page with a live progress bar
-- When finished, view the output or error
-
-## File Locations
-- Uploaded files: `whisper_web/uploads/`
-- Output files: Same directory as uploaded file, or as specified
-
-## Troubleshooting
-- Make sure Redis server is running before starting Celery
-- Make sure all Python dependencies are installed in your environment
-- For GPU support, install CUDA and compatible PyTorch
-
-## Advanced
-- You can run multiple Celery workers for parallel jobs
-- Customize progress reporting in `celery_worker.py`
