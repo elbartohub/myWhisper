@@ -16,12 +16,13 @@ This project provides a local, space-saving(For MacOS/Windows11), and customizab
 **Recommended:** Python 3.12
 
 Create a virtual environment and install dependencies:
-
+- MacOS
 ```MacOS bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+- Windows 11
 ```Windows PowerShell
 python3.12 -m venv .venv
 .venv/Scripts/activate
