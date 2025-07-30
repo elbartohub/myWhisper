@@ -4,8 +4,8 @@ This project provides a local, space-saving(For MacOS/Windows11), and customizab
 
 ## 生成繁體中文字幕 .srt
 
-# 全離線操作，包括生成、翻譯，並自動檢測影片語言。
-提供 custom_dict.txt 自定翻譯詞彙
+### 全離線操作，包括生成、翻譯，並自動檢測影片語言。
+### 提供 custom_dict.txt 自定翻譯詞彙
 ---
 ![alt text](images/myWhisper01.jpg)
 
