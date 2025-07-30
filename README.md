@@ -1,6 +1,6 @@
 # My Whisper Project
 
-This project provides a local, space-saving(For MacOS), and customizable setup for OpenAI's Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
+This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and custom dictionaries.
 
 ---
 ![alt text](images/myWhisper01.jpg)
@@ -16,7 +16,7 @@ Create a virtual environment and install dependencies:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install flask openai-whisper torch deep-translator werkzeug
+pip install -r requirements.txt
 ```
 
 ### 2. Download Whisper Models
