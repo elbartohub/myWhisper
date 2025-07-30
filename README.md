@@ -56,6 +56,7 @@ Open your browser and go to: [http://127.0.0.1:5001](http://127.0.0.1:5001)
 - Progress bar for long-running jobs
 - Robust background processing (threaded, no Redis/Celery required)
 - Custom dictionary for translation overrides (`custom_dict.txt`)
+- Auto-fix for extra spaces between Chinese words in translation output (SRT/TXT will not have unwanted spaces)
 
 ---
 ![alt text](images/myWhisper03.jpg)
@@ -108,6 +109,7 @@ myWhisper/
 - Use the web interface for easy uploads and progress tracking.
 - Edit `custom_dict.txt` to fine-tune translation results.
 - All output files (SRT, TXT) are saved with the same base name as your input file.
+- Any extra spaces between Chinese words (e.g. `算法的 實際`) caused by translation will be automatically removed in the final output.
 
 ---
 
@@ -116,6 +118,7 @@ myWhisper/
 - If you see errors about missing models, run `python whisper_models.py download base`.
 - If you see device errors, force CPU by selecting "Force CPU" in the web UI.
 - For best results, keep your models and virtual environment on a fast drive.
+- If you see extra spaces between Chinese words in SRT/TXT, the system will now auto-fix them before saving output.
 
 ---
 

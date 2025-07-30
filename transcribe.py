@@ -27,6 +27,7 @@ from pathlib import Path
 import whisper
 import json
 import torch
+print("[CUDA] transcribe.py: CUDA available:", torch.cuda.is_available())
 # ...existing code...
 # Set up paths
 PROJECT_DIR = Path(__file__).parent

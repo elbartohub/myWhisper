@@ -80,7 +80,6 @@ def task_status(task_id):
         if job:
             response['state'] = job.get('state', 'PENDING')
             response['progress'] = job.get('progress', 0)
-            response['chunk_progress'] = job.get('chunk_progress', 0)
             response['transcribe_progress'] = job.get('transcribe_progress', 0)
             response['translate_progress'] = job.get('translate_progress', 0)
             response['post_progress'] = job.get('post_progress', 0)
@@ -95,7 +94,6 @@ def task_status(task_id):
         else:
             response['state'] = 'PENDING'
             response['progress'] = 0
-            response['chunk_progress'] = 0
             response['transcribe_progress'] = 0
             response['translate_progress'] = 0
             response['post_progress'] = 0

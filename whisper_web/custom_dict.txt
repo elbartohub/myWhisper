@@ -1,8 +1,10 @@
 # custom_dict.txt
 # Format: source=target (one per line)
 # Lines starting with # are comments and ignored
-聊天GPT=ChatGPT
+聊天 GPT=ChatGPT
 變壓器=Transformer
+變形器=Transformer
+關注 是所有你需要的= Attention is all you need
 語音識別=Speech Recognition
 原文=Original
 測試=Test

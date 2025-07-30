@@ -18,8 +18,7 @@ def transcribe_task(job_id, file_path, output_dir, model, fmt, cpu, translate_zh
     transcription_jobs[job_id] = {
         'state': 'STARTED',
         'progress': 0,
-        'stage': 'chunking',
-        'chunk_progress': 0,
+        'stage': 'transcribing',
         'transcribe_progress': 0,
         'translate_progress': 0,
         'post_progress': 0,
@@ -29,94 +28,78 @@ def transcribe_task(job_id, file_path, output_dir, model, fmt, cpu, translate_zh
     try:
         import whisper
         import torch
+        print("[CUDA] celery_worker.py: CUDA available:", torch.cuda.is_available())
         import warnings
         import re
-        device = 'cpu'  # Always use CPU to avoid MPS backend errors
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'  # Use GPU if available
         transcription_jobs[job_id].update({'state': 'PROGRESS', 'progress': 5})
         model_name = model or 'base'
         print(f"[DEBUG] Loading Whisper model: {model_name} on device: {device}")
         model_obj = whisper.load_model(model_name, device=device)
         print(f"[DEBUG] Model loaded successfully.")
 
-        # --- Chunking logic ---
-        print(f"[DEBUG] Splitting audio into chunks...")
-        transcription_jobs[job_id].update({'stage': 'chunking', 'chunk_progress': 0})
-        audio = AudioSegment.from_file(file_path)
-        chunk_length_ms = 60 * 1000  # 60 seconds
-        silence_thresh = audio.dBFS - 16  # threshold for silence
-        min_silence_len = 700  # ms
-        chunks = silence.split_on_silence(audio, min_silence_len=min_silence_len, silence_thresh=silence_thresh, keep_silence=300)
-        final_chunks = []
-        for chunk in chunks:
-            if len(chunk) > chunk_length_ms:
-                for i in range(0, len(chunk), chunk_length_ms):
-                    final_chunks.append(chunk[i:i+chunk_length_ms])
-            else:
-                final_chunks.append(chunk)
-        if not final_chunks:
-            final_chunks = [audio]
-        print(f"[DEBUG] Total chunks: {len(final_chunks)}")
-        transcription_jobs[job_id].update({'chunk_progress': 100, 'progress': 25})
-
-        # Save temp chunk files
-        temp_dir = os.path.join(os.path.dirname(file_path), f"_chunks_{job_id}")
-        os.makedirs(temp_dir, exist_ok=True)
-        chunk_files = []
-        for idx, chunk in enumerate(final_chunks):
-            chunk_path = os.path.join(temp_dir, f"chunk_{idx}.wav")
-            chunk.export(chunk_path, format="wav")
-            chunk_files.append(chunk_path)
-
-        # Transcribe each chunk and update progress
+        # --- No chunking: transcribe the whole audio file at once ---
+        print(f"[DEBUG] No chunking, transcribing the whole audio file...")
         transcription_jobs[job_id].update({'stage': 'transcribing', 'transcribe_progress': 0})
-        all_segments = []
-        all_text = []
-        for idx, chunk_path in enumerate(chunk_files):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                fp16 = device in ["mps", "cuda"]
-                print(f"[DEBUG] Transcribing chunk {idx+1}/{len(chunk_files)}: {chunk_path}")
-                result = model_obj.transcribe(chunk_path, verbose=False, fp16=fp16)
-                print(f"[DEBUG] Chunk {idx+1} transcription complete.")
-            # Collect segments and text
-            all_segments.extend(result.get("segments", []))
-            all_text.append(result["text"].strip())
-            percent = int(100 * (idx + 1) / len(chunk_files))
-            transcription_jobs[job_id].update({'transcribe_progress': percent})
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            fp16 = device in ["mps", "cuda"]
+            result = model_obj.transcribe(file_path, verbose=False, fp16=fp16)
         transcription_jobs[job_id].update({'transcribe_progress': 100, 'progress': 50})
-        import shutil
-        shutil.rmtree(temp_dir, ignore_errors=True)
-
-        # Merge results
-        result = {"segments": all_segments, "text": "\n".join(all_text)}
         if translate_zh:
             transcription_jobs[job_id].update({'stage': 'translating', 'translate_progress': 0})
-            print(f"[DEBUG] Starting translation to Traditional Chinese...")
+            print(f"[DEBUG] Starting local MarianMT + OpenCC translation to Traditional Chinese...")
             try:
-                from deep_translator import GoogleTranslator
-                translator = GoogleTranslator(source='auto', target='zh-TW')
-                sentences = re.split(r'(?<=[.!?。！？])\s+', result["text"])
-                zh_sentences = []
-                for idx, s in enumerate(sentences):
-                    if s.strip():
-                        zh = translator.translate(s.strip())
-                        zh_sentences.append(zh)
-                        time.sleep(0.5)
-                    percent = int(100 * (idx + 1) / len(sentences))
-                    transcription_jobs[job_id].update({'translate_progress': percent})
-                zh_text = ' '.join(zh_sentences)
+                from transformers import MarianMTModel, MarianTokenizer
+                from opencc import OpenCC
+                cc = OpenCC('s2t')  # 簡體轉繁體
+                model_dir = os.path.join(os.path.dirname(__file__), '../translation_model')
+                os.makedirs(model_dir, exist_ok=True)
+                model_name = "Helsinki-NLP/opus-mt-en-zh"
+                tokenizer = MarianTokenizer.from_pretrained(model_name, cache_dir=model_dir)
+                model = MarianMTModel.from_pretrained(model_name, cache_dir=model_dir)
+                # 分批翻譯主文本
+                sentences = [s.strip() for s in re.split(r'(?<=[.!?。！？])\s+', result["text"]) if s.strip()]
+                batch_size = 8
+                zh_sents_trad = []
+                for i in range(0, len(sentences), batch_size):
+                    batch_sents = sentences[i:i+batch_size]
+                    batch = tokenizer(batch_sents, return_tensors="pt", padding=True, truncation=True)
+                    translated = model.generate(**batch)
+                    zh_sents = [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
+                    zh_sents_trad.extend([cc.convert(s) for s in zh_sents])
+                    # 進度回報
+                    percent = int(100 * (i + batch_size) / max(len(sentences), 1))
+                    transcription_jobs[job_id].update({'translate_progress': min(percent, 99)})
+                zh_text = ' '.join(zh_sents_trad)
                 result["text"] = zh_text
-                print(f"[DEBUG] Main text translated.")
-                for seg in result.get("segments", []):
-                    seg_sentences = re.split(r'(?<=[.!?。！？])\s+', seg["text"])
-                    zh_seg_sentences = []
-                    for s in seg_sentences:
-                        if s.strip():
-                            zh = translator.translate(s.strip())
-                            zh_seg_sentences.append(zh)
-                            time.sleep(0.5)
-                    seg["text"] = ' '.join(zh_seg_sentences)
-                print(f"[DEBUG] Segments translated.")
+                print(f"[DEBUG] Main text batch translated (MarianMT+OpenCC)。")
+                # 分批翻譯 segments
+                segments = result.get("segments", [])
+                seg_texts = [seg["text"] for seg in segments]
+                zh_seg_sents_trad = []
+                if seg_texts:
+                    for i in range(0, len(seg_texts), batch_size):
+                        batch_sents = seg_texts[i:i+batch_size]
+                        seg_batch = tokenizer(batch_sents, return_tensors="pt", padding=True, truncation=True)
+                        seg_translated = model.generate(**seg_batch)
+                        zh_seg_sents = [tokenizer.decode(t, skip_special_tokens=True) for t in seg_translated]
+                        zh_seg_sents_trad.extend([cc.convert(s) for s in zh_seg_sents])
+                        # 進度回報
+                        percent = int(100 * (i + batch_size) / max(len(seg_texts), 1))
+                        transcription_jobs[job_id].update({'translate_progress': min(percent, 99)})
+                    # 對齊 segment 數量
+                    for i, seg in enumerate(segments):
+                        if i < len(zh_seg_sents_trad):
+                            seg["text"] = zh_seg_sents_trad[i]
+                        else:
+                            seg["text"] = ""
+                print(f"[DEBUG] Segments batch translated (MarianMT+OpenCC)。")
+                # Debug: 印出每個 segment 翻譯前後內容
+                for i, seg in enumerate(segments):
+                    orig = seg_texts[i] if i < len(seg_texts) else ""
+                    print(f"[DEBUG] seg[{i}] before translation: {orig}")
+                    print(f"[DEBUG] seg[{i}] after translation:  {seg['text']}")
             except Exception as e:
                 print(f"[ERROR] Translation error: {e}")
                 result["text"] += f"\n[Translation Error: {e}]"
@@ -144,11 +127,25 @@ def transcribe_task(job_id, file_path, output_dir, model, fmt, cpu, translate_zh
                 print(f"[DEBUG] Custom dictionary loaded: {replacements}")
             except Exception as e:
                 print(f"[ERROR] Custom Dictionary Error: {e}")
-        # Apply replacements to output_text
+        # Apply replacements to output_text，忽略所有空白（半形、全形）
+        def make_space_insensitive_pattern(src):
+            # 將 src 轉為 pattern，忽略所有空白（半形、全形）
+            import re
+            chars = [c for c in src if not c.isspace()]
+            # [\s\u3000]* 代表可有可無的半形或全形空白
+            return r''.join([re.escape(c) + r'[\s\u3000]*' for c in chars])
+
         for src, tgt in replacements:
-            output_text = re.sub(re.escape(src), tgt, output_text, flags=re.IGNORECASE)
+            pattern = make_space_insensitive_pattern(src)
+            output_text = re.sub(pattern, tgt, output_text, flags=re.IGNORECASE)
 
         # Save output to file using input file's base name
+        # 在輸出前，自動合併所有中文之間多餘的空白
+        import re as _re
+        def merge_chinese_spaces(text):
+            # 合併所有「中文+空白+中文」為「中文中文」
+            return _re.sub(r'([\u4e00-\u9fff])\s+([\u4e00-\u9fff])', r'\1\2', text)
+
         input_base = os.path.splitext(os.path.basename(file_path))[0]
         outputs_dir = os.path.join(os.path.dirname(__file__), 'outputs')
         os.makedirs(outputs_dir, exist_ok=True)
@@ -162,11 +159,28 @@ def transcribe_task(job_id, file_path, output_dir, model, fmt, cpu, translate_zh
                 m = int((seconds % 3600) // 60)
                 s = int(seconds % 60)
                 return f"{h:02}:{m:02}:{s:02},{ms:03}"
+            # 先依 start 時間排序，避免 SRT 時間錯亂
+            segments = sorted(result.get("segments", []), key=lambda seg: seg["start"])
             srt_lines = []
-            for idx, seg in enumerate(result.get("segments", []), 1):
+            import unicodedata
+            def normalize_text(text):
+                # 移除所有空白、全形空白，並轉半形
+                text = ''.join(text.split())
+                text = unicodedata.normalize('NFKC', text)
+                return text
+            for idx, seg in enumerate(segments, 1):
                 seg_text = seg["text"]
+                orig_text = seg_text
                 for src, tgt in replacements:
-                    seg_text = re.sub(re.escape(src), tgt, seg_text, flags=re.IGNORECASE)
+                    pattern = make_space_insensitive_pattern(src)
+                    seg_text_new = re.sub(pattern, tgt, seg_text, flags=re.IGNORECASE)
+                    if seg_text_new != seg_text:
+                        seg_text = seg_text_new
+                # 合併中文間多餘空白
+                seg_text = merge_chinese_spaces(seg_text)
+                if orig_text != seg_text:
+                    print(f"[DEBUG] SRT seg[{idx}] before dict: {orig_text}")
+                    print(f"[DEBUG] SRT seg[{idx}] after dict:  {seg_text}")
                 srt_lines.append(str(idx))
                 srt_lines.append(f"{format_timestamp(seg['start'])} --> {format_timestamp(seg['end'])}")
                 srt_lines.append(seg_text)
@@ -178,6 +192,8 @@ def transcribe_task(job_id, file_path, output_dir, model, fmt, cpu, translate_zh
             output_file_path = srt_path
         else:
             # Save TXT output for download
+            # 合併中文間多餘空白
+            output_text = merge_chinese_spaces(output_text)
             txt_filename = f"{input_base}.txt"
             txt_path = os.path.join(outputs_dir, txt_filename)
             with open(txt_path, "w", encoding="utf-8") as f:
