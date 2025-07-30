@@ -17,6 +17,8 @@ whisper_web/outputs/
 whisper_web/uploads/
 whisper_web/_chunks_*/
 
+translation_model/
+
 # Jupyter Notebooks
 .ipynb_checkpoints/
 
