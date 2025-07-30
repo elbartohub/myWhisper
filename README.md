@@ -64,7 +64,7 @@ Open your browser and go to: [http://127.0.0.1:5001](http://127.0.0.1:5001)
 - Upload audio/video files for transcription
 - Choose Whisper model, output format, and translation to Traditional Chinese
 - Progress bar for long-running jobs
-- Robust background processing (threaded, no Redis/Celery required)
+- Robust background processing (threaded, no Redis required)
 - Custom dictionary for translation overrides (`custom_dict.txt`)
 - Auto-fix for extra spaces between Chinese words in translation output (SRT/TXT will not have unwanted spaces)
 
