@@ -2,6 +2,7 @@
 
 This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and "Custom dictionaries".
 
+自動生成繁體中文影片字幕
 ---
 ![alt text](images/myWhisper01.jpg)
 
