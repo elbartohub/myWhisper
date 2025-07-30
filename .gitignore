@@ -37,3 +37,5 @@ whisper_web/models/
 
 # Misc
 *.sqlite3
+
+uploads/
