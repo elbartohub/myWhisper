@@ -1,4 +1,4 @@
-# My Whisper Project
+# MyWhisper
 
 This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and "Custom dictionaries".
 
