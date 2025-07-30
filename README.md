@@ -3,7 +3,9 @@
 This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and "Custom dictionaries".
 
 生成繁體中文影片字幕
-全離線生成、翻譯。自動檢測影片語言。
+
+全離線操作，包括生成、翻譯，並自動檢測影片語言。
+
 ---
 ![alt text](images/myWhisper01.jpg)
 
