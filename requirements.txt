@@ -4,3 +4,6 @@ torch
 deep-translator
 werkzeug
 pydub
+transformers
+opencc
+sentencepiece
