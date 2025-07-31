@@ -1,11 +1,11 @@
-# MyWhisper 自定翻譯
+# MyWhisper 自定翻譯詞彙
 
 This project provides a local, space-saving(For MacOS/Windows11), and customizable setup for Whisper speech recognition models. It includes a web interface for easy transcription, local model storage, and support for translation and "Custom dictionaries".
 
-## 生成繁體中文字幕 .srt
+## 簡易繁體中文字幕 .srt
 
-### 全離線操作，包括生成、翻譯，並自動檢測影片語言。
-### 提供 custom_dict.txt 自定翻譯詞彙
+### 全離線操作（包括生成、翻譯），並自動檢測影片語言。
+### 使用 custom_dict.txt 自定翻譯詞彙
 ---
 ![alt text](images/myWhisper01.jpg)
 
@@ -304,4 +304,3 @@ print(result["text"])
 - Upload audio/video files for transcription
 - Choose Whisper model, output format, and translation to Traditional Chinese
 - Progress bar for long-running jobs
-- Robust background processing using Celery + Redis
